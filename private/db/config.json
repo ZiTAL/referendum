@@ -1,5 +1,6 @@
 {
     "question": "Referendum question",
+    "timeout": 60,
     "db":
     {
         "file":  "referendum.db",

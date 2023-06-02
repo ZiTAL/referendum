@@ -1,10 +1,9 @@
 <?php
+require_once('Config.php');
 require_once('CustomError.php');
 
 class Session
 {
-    private static $life_time = 1 * 60; // 1 min
-
     public static function start()
     {
         session_start();
@@ -26,9 +25,12 @@ class Session
     {
         if(!empty($_SESSION['timestamp_start']))
         {
+            $config  = Config::get();
+            $timeout = (int)$config['timeout'];
+
             $now = time();
             $c = $now - (int)$_SESSION['timestamp_start'];
-            if($c<=self::$life_time)
+            if($c<=$timeout)
                 return true;
         }
         self::destroy();
