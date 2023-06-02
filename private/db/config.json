@@ -1,0 +1,40 @@
+{
+    "question": "Referendum question",
+    "db":
+    {
+        "file":  "referendum.db",
+        "table": "REFERENDUM",
+        "fields":
+        {
+            "ID":            "INTEGER PRIMARY KEY AUTOINCREMENT",
+            "DNI":           "TEXT(9) NOT NULL",
+            "ANSWER":        "INTEGER NOT NULL",
+            "REGISTER_DATE": "DATE",
+            "CSRF":          "TEXT",
+            "IP":            "TEXT",
+            "BROWSER_ID":    "TEXT"
+        },
+        "values":
+        {
+            "ANSWER":
+            [
+                {
+                    "name": "Answer 1",
+                    "value": 1
+                },
+                {
+                    "name": "Answer 2",
+                    "value": 2
+                },
+                {
+                    "name": "Answer 3",
+                    "value": 3
+                },
+                {
+                    "name": "Answer 4",
+                    "value": 4
+                }                
+            ]
+        }
+    }
+}

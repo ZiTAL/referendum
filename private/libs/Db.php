@@ -1,20 +1,31 @@
 <?php
-require_once('Referendum.php');
+require_once('Config.php');
 require_once('CustomError.php');
 
 class Db
 {
     private static $instance;
 
+    private static function config()
+    {
+        return Config::get();
+    }
+
     public static function create()
     {
+        $config   = self::config();
         $instance = self::getInstance();
-        $query    = "CREATE TABLE IF NOT EXISTS REFERENDUM (
-            ID INTEGER PRIMARY KEY AUTOINCREMENT,
-            DNI TEXT NOT NULL,
-            ANSWER INTEGER NOT NULL,
-            REGISTER_DATE DATE
-        )";
+
+        $query    = "CREATE TABLE IF NOT EXISTS {$config['db']['table']} (\n";
+
+        $keys = array_keys($config['db']['fields']);
+        foreach ($keys as $index => $key)
+        {
+            if($index>0)
+                $query.=", \n";
+            $query.= "{$key} {$config['db']['fields'][$key]}";
+        }
+        $query    .= "\n)";
 
         // Execute the query to create the table
         $instance->exec($query);        
@@ -22,17 +33,23 @@ class Db
 
     public static function drop()
     {
+        $config   = self::config();
         $instance = self::getInstance();
-        $query    = "DROP TABLE REFERENDUM";
+        $query    = "DROP TABLE {$config['db']['table']}";
         $instance->exec($query);        
     }    
 
-    public static function exists($dni)
+    public static function exists($array)
     {
+        $config   = self::config();
         $instance = self::getInstance();
-        $query    = "SELECT count(*) as count FROM REFERENDUM WHERE DNI = :dni";
+        $query    = "SELECT count(*) as count FROM {$config['db']['table']} ";
+        $query   .= self::buildSelectWhere($array);
+
         $stmt     = $instance->prepare($query);
-        $stmt->bindValue(':dni', $dni);
+        foreach($array as $key => $value)
+            $stmt->bindValue(":{$key}", $value);
+
         $result   = $stmt->execute();
         $row = $result->fetchArray(SQLITE3_ASSOC);
         $stmt->close();
@@ -46,10 +63,9 @@ class Db
     {
         try
         {
-            $params['register_date'] = date('Y-m-d H:i:s');
-
+            $config   = self::config();
             $instance = self::getInstance();
-            $query    = "INSERT INTO REFERENDUM (DNI, ANSWER, REGISTER_DATE) VALUES (:dni, :answer, :register_date)";
+            $query    = "INSERT INTO {$config['db']['table']} (".implode(', ', array_keys($params)).") VALUES (:".implode(', :', array_keys($params)).")";
             $stmt     = $instance->prepare($query);
     
             foreach($params as $key => $value)
@@ -67,8 +83,9 @@ class Db
     {
         try
         {
+            $config   = self::config();
             $instance = self::getInstance();
-            $query    = "SELECT * FROM REFERENDUM ORDER BY REGISTER_DATE DESC";
+            $query    = "SELECT * FROM {$config['db']['table']}";
             $stmt     = $instance->prepare($query);
             if(!$stmt)
                 CustomError::response('Error connecting to the database', 500);
@@ -77,7 +94,7 @@ class Db
             $rows     = [];
             while ($row = $result->fetchArray(SQLITE3_ASSOC))
             {
-                $row['NAME'] = Referendum::getNameByValue($row['ANSWER']);
+                $row['NAME'] = Db::getNameByValue($row['ANSWER']);
                 $rows[] = $row;
             }
     
@@ -94,8 +111,10 @@ class Db
     {
         try
         {
+            $config = self::config();
+
             if(!self::$instance)
-                self::$instance = new SQLite3(__DIR__."/../db/referendum.db");
+                self::$instance = new SQLite3(__DIR__."/../db/{$config['db']['file']}");
 
             return self::$instance;
         }
@@ -103,5 +122,31 @@ class Db
         {
             CustomError::response('Error connecting to the database', 500);
         }
+    }
+
+    private static function buildSelectWhere($array)
+    {
+        $query = 'WHERE ';
+        $keys = array_keys($array);
+        foreach ($keys as $index => $key)
+        {
+            if($index>0)
+                $query.="AND \n";
+            $query.= "{$key} = :{$key}";
+        }
+        $query    .= "\n";
+        return $query;
+    }
+
+    public static function getNameByValue($value)
+    {
+        $config  = self::config();
+        $answers = $config['db']['values']['ANSWER'];
+        foreach($answers as $answer)
+        {
+            if($answer['value']==$value)
+                return $answer['name'];
+        }
+        return NULL;
     }
 }

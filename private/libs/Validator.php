@@ -1,5 +1,4 @@
 <?php
-require_once('Referendum.php');
 require_once('Db.php');
 require_once('Session.php');
 require_once('CustomError.php');
@@ -26,7 +25,7 @@ class Validator
     
     private static function dniDb($dni)
     {
-        if(Db::exists($dni))
+        if(Db::exists(['DNI' => $dni]))
             CustomError::response("DNI already exists in database", $code = '401');
     }
     
@@ -53,7 +52,8 @@ class Validator
         [
             'answer',
             'dni',
-            'csrf'
+            'csrf',
+            'browser_id'
         ];
         
         foreach($required as $r)
@@ -85,6 +85,7 @@ class Validator
     {
         try
         {
+            $params['REGISTER_DATE'] = date('Y-m-d H:i:s');
             Db::insert($params);
             Session::destroy();
         }
@@ -96,7 +97,7 @@ class Validator
 
     private static function valueExists($value)
     {
-        if(Referendum::getNameByValue($value)!==NULL)
+        if(Db::getNameByValue($value)!==NULL)
             return true;
         CustomError::response('Error value not exists', 500);
     }
@@ -112,6 +113,23 @@ class Validator
     private static function sessionDestroy()
     {
         session_destroy();
+    }
+
+    private static function addExtraParams($params)
+    {
+        $ips = [];
+        
+        if(!empty($_SERVER['REMOTE_ADDR']))
+            $ips[] = $_SERVER['REMOTE_ADDR'];
+        if(!empty($_SERVER['HTTP_CLIENT_IP']))
+            $ips[] = $_SERVER['HTTP_CLIENT_IP'];
+        if(!empty($_SERVER['HTTP_X_FORWARDED_FOR']))
+            $ips[] = $_SERVER['HTTP_X_FORWARDED_FOR'];            
+
+        if(count($ips)>0)
+            $params['IP'] = (count($ips)>0)?implode('|', $ips):'';
+
+        return $params;
     }
     
     public function request()
@@ -132,9 +150,12 @@ class Validator
         self::valueExists($params['answer']);
     
         // dni
-        $dni           = self::dni($params['dni']);
-        $params['dni'] = $dni;
+        $dni                   = self::dni($params['dni']);
+        $params['dni']         = $dni;
         self::dniDb($dni);
+
+        // extra params
+        $params = self::addExtraParams($params);
     
         // datu basea
         self::insert($params);

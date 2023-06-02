@@ -3,9 +3,9 @@ $PRIVATE = '../private';
 $LIBS    = "{$PRIVATE}/libs";
 $VIEWS   = "{$PRIVATE}/views";
 
+require_once("{$LIBS}/Config.php");
 require_once("{$LIBS}/Validator.php");
 require_once("{$LIBS}/Db.php");
-require_once("{$LIBS}/Referendum.php");
 
 if($_POST)
 {
@@ -14,8 +14,13 @@ if($_POST)
 }
 else
 {
-    $csrf  = Session::getCSRF();
-    $array = Referendum::get();
-    $rows  = Db::get();
+    $csrf   = Session::getCSRF();
+    $config = Config::get();
+    $array  =
+    [
+        'question' => $config['question'],
+        'answers'  => $config['db']['values']['ANSWER']
+    ];
+    $rows   = Db::get();
     include("{$VIEWS}/index.blade.php");
 }
