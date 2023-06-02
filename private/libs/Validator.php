@@ -53,7 +53,7 @@ class Validator
             'answer',
             'dni',
             'csrf',
-            'browser_id'
+            'fingerprint'
         ];
         
         foreach($required as $r)
@@ -159,5 +159,9 @@ class Validator
     
         // datu basea
         self::insert($params);
+
+        $params['name'] = Db::getNameByValue($params['answer']);
+
+        return $params;
     }    
 }

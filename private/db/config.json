@@ -13,7 +13,7 @@
             "REGISTER_DATE": "DATE",
             "CSRF":          "TEXT",
             "IP":            "TEXT",
-            "BROWSER_ID":    "TEXT"
+            "FINGERPRINT":   "TEXT"
         },
         "values":
         {

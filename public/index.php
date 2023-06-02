@@ -11,6 +11,12 @@ if($_POST)
 {
     $params = Validator::request();
     include("{$VIEWS}/voted.blade.php");    
+    exit();
+}
+else if(isset($_GET['csrf']))
+{
+    echo "{$_GET['csrf']}";
+    exit();
 }
 else
 {
