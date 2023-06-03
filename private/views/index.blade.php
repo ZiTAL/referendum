@@ -46,7 +46,7 @@
 <script>
 (function()
 {
-    const fpPromise = import('https://openfpcdn.io/fingerprintjs/v3')
+    const fpPromise = import('./js/fingerprint.js')
     .then(FingerprintJS => FingerprintJS.load())
     fpPromise
     .then(fp => fp.get())

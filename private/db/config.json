@@ -7,13 +7,14 @@
         "table": "REFERENDUM",
         "fields":
         {
-            "ID":            "INTEGER PRIMARY KEY AUTOINCREMENT",
-            "DNI":           "TEXT(9) NOT NULL",
-            "ANSWER":        "INTEGER NOT NULL",
-            "REGISTER_DATE": "DATE",
-            "CSRF":          "TEXT",
-            "IP":            "TEXT",
-            "FINGERPRINT":   "TEXT"
+            "ID":               "INTEGER PRIMARY KEY AUTOINCREMENT",
+            "DNI":              "TEXT(9) NOT NULL",
+            "ANSWER":           "INTEGER NOT NULL",
+            "REGISTER_DATE":    "DATE",
+            "CSRF":             "TEXT",
+            "IP":               "TEXT",
+            "FINGERPRINT":      "TEXT",
+            "LAST_RECORD_HASH": "TEXT"
         },
         "values":
         {

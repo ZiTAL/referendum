@@ -63,10 +63,16 @@ class Db
     {
         try
         {
-            $config   = self::config();
-            $instance = self::getInstance();
-            $query    = "INSERT INTO {$config['db']['table']} (".implode(', ', array_keys($params)).") VALUES (:".implode(', :', array_keys($params)).")";
-            $stmt     = $instance->prepare($query);
+            $config                     = self::config();
+            $instance                   = self::getInstance();
+            $params['LAST_RECORD_HASH'] = self::getLastRecordHash();
+            $query                      = "
+                INSERT INTO {$config['db']['table']}
+                (".implode(', ', array_keys($params)).")
+                VALUES
+                (:".implode(', :', array_keys($params)).")";
+
+            $stmt                       = $instance->prepare($query);
     
             foreach($params as $key => $value)
                 $stmt->bindValue(":{$key}", $value);
@@ -85,6 +91,7 @@ class Db
         {
             $config   = self::config();
             $instance = self::getInstance();
+
             $query    = "SELECT * FROM {$config['db']['table']}";
             $stmt     = $instance->prepare($query);
             if(!$stmt)
@@ -105,6 +112,26 @@ class Db
         {
             CustomError::response('Error connecting to the database', 500);
         }        
+    }
+
+    public static function getLastRecord()
+    {
+        $config   = self::config();
+        $instance = self::getInstance();
+        $key      = array_keys($config['db']['fields'])[0];
+        $query    = "SELECT * FROM {$config['db']['table']} ORDER BY {$key} DESC LIMIT 1";
+        $result   = $instance->query($query);
+        $last     = $result->fetchArray(SQLITE3_ASSOC);
+        
+        return ($last!==false)?$last:'';
+    }
+
+    public static function getLastRecordHash()
+    {
+        $last_record = self::getLastRecord();
+        $serialized  = serialize($last_record);
+        $hash        = hash('sha256', $serialized);
+        return $hash;
     }
 
     public static function getInstance()

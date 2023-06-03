@@ -20,6 +20,7 @@ else if(isset($_GET['csrf']))
 }
 else
 {
+    Session::start();
     $csrf   = Session::getCSRF();
     $config = Config::get();
     $array  =
