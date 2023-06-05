@@ -1,20 +1,20 @@
 {
-    "question": "Referendum question",
-    "timeout": 60,
+    "question":                   "Referendum question",
+    "session_timeout":            60,
+    "fingerprint_repeat_allowed": 4,
     "db":
     {
         "file":  "referendum.db",
         "table": "REFERENDUM",
         "fields":
         {
-            "ID":               "INTEGER PRIMARY KEY AUTOINCREMENT",
-            "DNI":              "TEXT(9) NOT NULL",
-            "ANSWER":           "INTEGER NOT NULL",
-            "REGISTER_DATE":    "DATE",
-            "CSRF":             "TEXT",
-            "IP":               "TEXT",
-            "FINGERPRINT":      "TEXT",
-            "LAST_RECORD_HASH": "TEXT"
+            "ID":                   "INTEGER PRIMARY KEY AUTOINCREMENT",
+            "DNI":                  "TEXT(9) NOT NULL",
+            "ANSWER":               "INTEGER NOT NULL",
+            "REGISTER_DATE":        "DATE",
+            "CSRF":                 "TEXT",
+            "FINGERPRINT":          "TEXT",
+            "PREVIOUS_RECORD_HASH": "TEXT"
         },
         "values":
         {

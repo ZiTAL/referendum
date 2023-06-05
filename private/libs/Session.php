@@ -26,10 +26,9 @@ class Session
         if(!empty($_SESSION['timestamp_start']))
         {
             $config  = Config::get();
-            $timeout = (int)$config['timeout'];
-
-            $now = time();
-            $c = $now - (int)$_SESSION['timestamp_start'];
+            $timeout = (int)$config['session_timeout'];
+            $now     = time();
+            $c       = $now - (int)$_SESSION['timestamp_start'];
             if($c<=$timeout)
                 return true;
         }
@@ -39,7 +38,6 @@ class Session
 
     public static function getCSRF()
     {
-        self::start();
         if (empty($_SESSION['csrf']))
             $_SESSION['csrf'] = bin2hex(random_bytes(32));
         return $_SESSION['csrf'];        

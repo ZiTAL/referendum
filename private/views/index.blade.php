@@ -18,23 +18,23 @@
     }
 </style>
 <body>
-    <h1><?=$array['question']?></h1>
+    <h1><?=$params['array']['question']?></h1>
     <form method="post">
         DNI: <input type="text" name="dni" placeholder="12345678A" maxlength="9"><br>
-        <?php foreach($array['answers'] as $answer):?>
+        <?php foreach($params['array']['answers'] as $answer):?>
         <input type="radio" name="answer" value="<?=$answer['value']?>"><?=$answer['name']?><br>
         <?php endforeach ?>
-        <input type="hidden" name="csrf" value="<?=$csrf?>">
+        <input type="hidden" name="csrf" value="<?=$params['csrf']?>">
         <input type="submit">
     </form>
-    <?php if(count($rows)>0): ?>
+    <?php if(count($params['rows'])>0): ?>
     <table>
         <tr>
-            <?php foreach($rows[0] as $key => $value):?>
+            <?php foreach($params['rows'][0] as $key => $value):?>
                 <th><?=$key?></th>
             <?php endforeach ?>
         </tr>            
-    <?php foreach($rows as $row): ?>
+    <?php foreach($params['rows'] as $row): ?>
         <tr>
             <?php foreach($row as $key => $value):?>
                 <td><?=$value?></td>

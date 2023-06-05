@@ -12,6 +12,5 @@
     <p>
         <?=$error?>
     <p>
-    <a href="">Try again</a>
 </body>
 </html>

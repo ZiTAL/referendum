@@ -55,7 +55,7 @@ class Db
         $stmt->close();
 
         if($row['count']>0)
-            return true;
+            return (int)$row['count'];
         return false;
     }
 
@@ -63,9 +63,9 @@ class Db
     {
         try
         {
-            $config                     = self::config();
-            $instance                   = self::getInstance();
-            $params['LAST_RECORD_HASH'] = self::getLastRecordHash();
+            $config                         = self::config();
+            $instance                       = self::getInstance();
+            $params['PREVIOUS_RECORD_HASH'] = self::getPreviousRecordHash();
             $query                      = "
                 INSERT INTO {$config['db']['table']}
                 (".implode(', ', array_keys($params)).")
@@ -101,7 +101,7 @@ class Db
             $rows     = [];
             while ($row = $result->fetchArray(SQLITE3_ASSOC))
             {
-                $row['NAME'] = Db::getNameByValue($row['ANSWER']);
+                $row['ANSWER_NAME'] = Db::getNameByValue($row['ANSWER']);
                 $rows[] = $row;
             }
     
@@ -114,24 +114,57 @@ class Db
         }        
     }
 
-    public static function getLastRecord()
+    public static function getPreviousRecord()
     {
         $config   = self::config();
         $instance = self::getInstance();
         $key      = array_keys($config['db']['fields'])[0];
         $query    = "SELECT * FROM {$config['db']['table']} ORDER BY {$key} DESC LIMIT 1";
         $result   = $instance->query($query);
-        $last     = $result->fetchArray(SQLITE3_ASSOC);
-        
-        return ($last!==false)?$last:'';
+        $previous = $result->fetchArray(SQLITE3_ASSOC);
+
+        if($previous!==false)
+        {
+            $previous['ANSWER_NAME'] = Db::getNameByValue($previous['ANSWER']);
+            return $previous;
+        }
+        else
+            return '';
     }
 
-    public static function getLastRecordHash()
+    public static function getRecord($params)
     {
-        $last_record = self::getLastRecord();
-        $serialized  = serialize($last_record);
-        $hash        = hash('sha256', $serialized);
+        $config   = self::config();
+        $instance = self::getInstance();        
+        $where    = self::buildSelectWhere($params);
+        $query    = "SELECT * FROM {$config['db']['table']} {$where} LIMIT 1";
+
+        $stmt     = $instance->prepare($query);
+        foreach($params as $key => $value)
+            $stmt->bindValue(":{$key}", $value);
+
+        $result      = $stmt->execute();
+        $row         = $result->fetchArray(SQLITE3_ASSOC);
+        if($row!==false)
+        {
+            $row['ANSWER_NAME'] = Db::getNameByValue($row['ANSWER']);
+            return $row;
+        }
+        $stmt->close();
+        CustomError::response('Record not found', 404);
+        return NULL;
+    }
+
+    public static function getPreviousRecordHash()
+    {
+        $previous = self::getPreviousRecord();
+        $hash     = ($previous!=='')?self::hash($previous):'';
         return $hash;
+    }
+
+    public static function hash($row)
+    {
+        return hash('sha256', serialize($row));
     }
 
     public static function getInstance()

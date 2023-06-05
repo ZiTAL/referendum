@@ -1,8 +1,8 @@
 <?php
+require_once('Config.php');
 require_once('Db.php');
 require_once('Session.php');
 require_once('CustomError.php');
-
 
 class Validator
 {    
@@ -25,7 +25,7 @@ class Validator
     
     private static function dniDb($dni)
     {
-        if(Db::exists(['DNI' => $dni]))
+        if(Db::exists(['DNI' => $dni])>0)
             CustomError::response("DNI already exists in database", $code = '401');
     }
     
@@ -46,6 +46,24 @@ class Validator
         }
         return NULL;
     }
+
+    private function allowed($params)
+    {
+        $allowed =
+        [
+            'answer',
+            'dni',
+            'csrf',
+            'fingerprint'
+        ];
+
+        foreach($params as $key => $value)
+        {
+            if(!in_array(strtolower($key), $allowed))
+                unset($params[$key]);
+        }
+        return $params;
+    }    
     
     private static function required($params)
     {
@@ -103,19 +121,6 @@ class Validator
         CustomError::response('Error value not exists', 500);
     }
 
-    private static function sessionStart()
-    {
-        $life_time = 1 * 60; // 1 min
-        ini_set('session.gc_maxlifetime', $life_time);
-        session_set_cookie_params($life_time);
-        session_start();
-    }    
-
-    private static function sessionDestroy()
-    {
-        session_destroy();
-    }
-
     private static function addExtraParams($params)
     {
         $ips = [];
@@ -132,6 +137,22 @@ class Validator
 
         return $params;
     }
+
+    public static function stringHide($string, $count = 1)
+    {
+        $replace = str_repeat('*', $count);
+        return preg_replace("/^[0-9]{".$count."}/", $replace, $string);
+    }
+
+    private function fingerprint($value)
+    {
+        $config                     = Config::get();
+        $fingerprint_repeat_allowed = (int)$config['fingerprint_repeat_allowed'];
+        $count                      = Db::exists(['FINGERPRINT' => $value]);
+
+        if($count>=$fingerprint_repeat_allowed)
+            CustomError::response('Max Fingerprint value reached', 405);
+    }
     
     public function request()
     {
@@ -143,25 +164,32 @@ class Validator
 
         // session timeout
         Session::verifyLifeTime();
-    
+
         // derrigorrezko parametroak
         self::required($params);
+
+        // behar ditugun parametroak bakarrik utzi
+        $params = self::allowed($params);
+
+        // fingerprint
+        self::fingerprint($params['fingerprint']);
 
         // parametro egokiak
         self::valueExists($params['answer']);
     
         // dni
-        $dni           = self::dni($params['dni']);
-        $params['dni'] = $dni;
+        $dni                   = self::dni($params['dni']);
+        $params['dni']         = $dni;
         self::dniDb($dni);
-
-        // extra params
-        $params = self::addExtraParams($params);
     
         // datu basea
         self::insert($params);
 
-        $params['name'] = Db::getNameByValue($params['answer']);
+        // Datu baseko baloreak JSON-eko datuekin batu
+        $params['answer_name'] = Db::getNameByValue($params['answer']);
+
+        // DNI-a ezkutatu
+        $params['dni']         = self::stringHide($params['dni'], 2);
 
         return $params;
     }    

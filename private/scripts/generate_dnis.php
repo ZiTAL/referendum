@@ -45,5 +45,5 @@ $dnis = generateDnis($dni, '*');
 foreach($dnis as $d)
 {
         if(dni($d))
-                echo "Valid: {$d}\n";
+                echo "{$d}\n";
 }
