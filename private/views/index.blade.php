@@ -46,18 +46,18 @@
 <script>
 (function()
 {
-    const fpPromise = import('./js/fingerprint.js')
+    const fpPromise = import('./js/fp.js')
     .then(FingerprintJS => FingerprintJS.load())
     fpPromise
     .then(fp => fp.get())
     .then(result =>
     {
-      const form = document.querySelector('form')
-      const input = document.createElement('input')
-      input.setAttribute('type', 'hidden')
-      input.setAttribute('name', 'fingerprint')
-      input.value = result.visitorId
-      form.appendChild(input)
+        const form  = document.querySelector('form')
+        const input = document.createElement('input')
+        input.setAttribute('type', 'hidden')
+        input.setAttribute('name', 'fingerprint')
+        input.value = result.visitorId
+        form.appendChild(input)
     })
     .catch(error => console.error(error))
 })()

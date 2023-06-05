@@ -36,14 +36,15 @@ class Validator
         return $dni;
     }
     
-    private static function sanitizePostParams()
-    {
-        $params = [];
-        
-        foreach ($_POST as $key => $value)
-            $params[$key] = filter_input(INPUT_POST, $key, FILTER_SANITIZE_STRING);
-        
-        return $params;
+    public static function sanitizeParams($params)
+    {   
+        if(isset($params))
+        {
+            foreach ($params as $key => $value)
+                $params[$key] = preg_replace("/[^a-z0-9]+/i", '', $params[$key]);
+            return $params;
+        }
+        return NULL;
     }
     
     private static function required($params)
@@ -135,7 +136,7 @@ class Validator
     public function request()
     {
         // post parametroak garbitu
-        $params = self::sanitizePostParams();
+        $params = self::sanitizeParams($_POST);
 
         // csrf kodea
         self::CSRF($params['csrf']);
@@ -150,8 +151,8 @@ class Validator
         self::valueExists($params['answer']);
     
         // dni
-        $dni                   = self::dni($params['dni']);
-        $params['dni']         = $dni;
+        $dni           = self::dni($params['dni']);
+        $params['dni'] = $dni;
         self::dniDb($dni);
 
         // extra params

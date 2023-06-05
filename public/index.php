@@ -1,11 +1,13 @@
 <?php
-$PRIVATE = '../private';
+$PRIVATE = __DIR__."/../private";
 $LIBS    = "{$PRIVATE}/libs";
 $VIEWS   = "{$PRIVATE}/views";
 
 require_once("{$LIBS}/Config.php");
 require_once("{$LIBS}/Validator.php");
 require_once("{$LIBS}/Db.php");
+
+$_GET = Validator::sanitizeParams($_GET);
 
 if($_POST)
 {
